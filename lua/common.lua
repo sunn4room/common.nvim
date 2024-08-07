@@ -3,6 +3,7 @@ local opts_fallback = {
   globals = {},
   mappings = {},
   commands = {},
+  autocmds = {},
   colors = {
     "Black",
     "DarkRed",
@@ -82,6 +83,19 @@ M.setup = function(opts)
         vim.api.nvim_create_user_command(key, action,
           vim.tbl_extend("force", {}, value))
       end
+    end
+  end
+
+  for group, cmds in pairs(opts.autocmds) do
+    while type(cmds) == "function" do
+      cmds = cmds()
+    end
+    group = vim.api.nvim_create_augroup(group, { clear = true })
+    for _, cmd in ipairs(cmds) do
+      local event = cmd.event
+      cmd.event = nil
+      cmd.group = group
+      vim.api.nvim_create_autocmd(event, cmd)
     end
   end
 
